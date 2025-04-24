@@ -21,8 +21,17 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 men_fashion_path = os.path.join(BASE_DIR, 'data', 'archive', 'Asosmenfashion.csv')
 women_fashion_path = os.path.join(BASE_DIR, 'data', 'archive', 'AsosWomenfashion.csv')
 
+# Read CSVs into DataFrames
 men_fashion_df = pd.read_csv(men_fashion_path)
 women_fashion_df = pd.read_csv(women_fashion_path)
+
+# Replace NaNs with None for Snowflake compatibility
+men_fashion_df = men_fashion_df.where(pd.notnull(men_fashion_df), None)
+women_fashion_df = women_fashion_df.where(pd.notnull(women_fashion_df), None)
+
+# Convert DataFrames to list of tuples
+men_rows = [tuple(None if pd.isna(x) else x for x in row) for _, row in men_fashion_df.iterrows()]
+women_rows = [tuple(None if pd.isna(x) else x for x in row) for _, row in women_fashion_df.iterrows()]
 
 # Connect to Snowflake
 conn = snowflake.connector.connect(
@@ -36,7 +45,7 @@ conn = snowflake.connector.connect(
 
 cursor = conn.cursor()
 
-# Create Tables
+# Create MEN_FASHION table
 cursor.execute("""
 CREATE OR REPLACE TABLE RAW.MEN_FASHION (
     product_id NUMBER,
@@ -49,9 +58,10 @@ CREATE OR REPLACE TABLE RAW.MEN_FASHION (
     rrp FLOAT,
     productCode STRING,
     productType STRING
-);
+)
 """)
 
+# Create WOMAN_FASHION table
 cursor.execute("""
 CREATE OR REPLACE TABLE RAW.WOMAN_FASHION (
     product_id NUMBER,
@@ -64,31 +74,27 @@ CREATE OR REPLACE TABLE RAW.WOMAN_FASHION (
     rrp FLOAT,
     productCode STRING,
     productType STRING
-);
+)
 """)
 
+# Bulk insert MEN_FASHION data
+cursor.executemany("""
+    INSERT INTO RAW.MEN_FASHION (
+        product_id, brand_name, title, current_price, previous_price,
+        colour, currency, rrp, productCode, productType
+    ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+""", men_rows)
 
+# Bulk insert WOMAN_FASHION data
+cursor.executemany("""
+    INSERT INTO RAW.WOMAN_FASHION (
+        product_id, brand_name, title, current_price, previous_price,
+        colour, currency, rrp, productCode, productType
+    ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+""", women_rows)
 
-# Insert MEN_FASHION data
-for _, row in men_fashion_table.iterrows():
-    cursor.execute("""
-        INSERT INTO RAW.MEN_FASHION (
-            product_id, brand_name, title, current_price, previous_price,
-            colour, currency, rrp, productCode, productType
-        ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-    """, tuple(row))
+print("All data successfully loaded into Snowflake.")
 
-# Insert WOMAN_FASHION data
-for _, row in woman_fashion_table.iterrows():
-    cursor.execute("""
-        INSERT INTO RAW.WOMAN_FASHION (
-            product_id, brand_name, title, current_price, previous_price,
-            colour, currency, rrp, productCode, productType
-        ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-    """, tuple(row))
-
-print("Data successfully loaded into Snowflake.")
-
-# Close the cursor and connection
+# Close connections
 cursor.close()
 conn.close()
