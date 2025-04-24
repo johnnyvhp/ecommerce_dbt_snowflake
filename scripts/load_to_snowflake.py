@@ -14,9 +14,15 @@ SNOWFLAKE_DATABASE = os.getenv('SNOWFLAKE_DATABASE')
 SNOWFLAKE_SCHEMA = os.getenv('SNOWFLAKE_SCHEMA')
 SNOWFLAKE_WAREHOUSE = os.getenv('SNOWFLAKE_WAREHOUSE')
 
-# Load the CSVs
-woman_fashion_table = pd.read_csv('data/archive/Asosmenfashion.csv')
-men_fashion_table = pd.read_csv('data/archive/AsosWomenfashion.csv')
+# Base directory (project root)
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+# Load the CSVs using full paths
+men_fashion_path = os.path.join(BASE_DIR, 'data', 'archive', 'Asosmenfashion.csv')
+women_fashion_path = os.path.join(BASE_DIR, 'data', 'archive', 'AsosWomenfashion.csv')
+
+men_fashion_df = pd.read_csv(men_fashion_path)
+women_fashion_df = pd.read_csv(women_fashion_path)
 
 # Connect to Snowflake
 conn = snowflake.connector.connect(
