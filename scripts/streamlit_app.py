@@ -27,6 +27,7 @@ conn = snowflake.connector.connect(
 # Query data
 query = """
     SELECT
+        gender,
         product_id,
         brand_name,
         title,
@@ -37,7 +38,7 @@ query = """
         rrp,
         product_code,
         product_type
-    FROM ANALYTICS.MART."fct_unique_men_products"
+    FROM ANALYTICS.MART."fct_all_products"
 """
 
 df = pd.read_sql(query, conn)
@@ -46,15 +47,15 @@ conn.close()
 # Normalize column names to lowercase
 df.columns = [col.lower() for col in df.columns]
 
-# Optional: Show available columns
-# st.write("Columns:", df.columns.tolist())
-
 # Streamlit UI
 st.set_page_config(page_title="Fashion Product Dashboard", layout="wide")
-st.title("🛍️ Men's Fashion Product Explorer")
+st.title("🛍️ Fashion Products Explorer")
 
 # Sidebar filters
 st.sidebar.header("🔍 Filters")
+
+genders = ["All"] + sorted(df['gender'].dropna().unique())
+selected_gender = st.sidebar.selectbox("Select Gender", genders)
 
 brands = ["All"] + sorted(df['brand_name'].dropna().unique())
 selected_brand = st.sidebar.selectbox("Select Brand", brands)
@@ -68,6 +69,9 @@ selected_price = st.sidebar.slider("Max Price", 0.0, max_price, max_price)
 # Apply filters
 filtered_df = df.copy()
 
+if selected_gender != "All":
+    filtered_df = filtered_df[filtered_df["gender"] == selected_gender]
+
 if selected_brand != "All":
     filtered_df = filtered_df[filtered_df["brand_name"] == selected_brand]
 
@@ -78,11 +82,12 @@ filtered_df = filtered_df[filtered_df["current_price"] <= selected_price]
 
 # KPIs
 st.markdown("### 📊 Key Metrics")
-col1, col2, col3 = st.columns(3)
+col1, col2, col3, col4 = st.columns(4)
 
 col1.metric("🧺 Total Products", f"{filtered_df.shape[0]:,}")
 col2.metric("💰 Avg Price", f"${filtered_df['current_price'].mean():.2f}")
 col3.metric("🏷️ Unique Brands", f"{filtered_df['brand_name'].nunique()}")
+col4.metric("🚻 Selected Gender", selected_gender if selected_gender != "All" else "Both")
 
 st.markdown("---")
 
