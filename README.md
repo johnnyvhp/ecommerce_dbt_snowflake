@@ -60,15 +60,8 @@ README.md
 | `stg_men_fashion` | Cleans the MEN_FASHION raw data |
 | `fct_unique_men_products` | Deduplicated final products table with one row per product_id |
 
-✅ All models tested for `not_null` and `unique` constraints where appropriate.
+✅ All models tested for `not_null` constraints where appropriate.
 
----
-
-## 🚀 Next Steps
-
-- Build an interactive Streamlit dashboard
-- Explore deeper analytics (brand rankings, pricing trends, etc.)
-- Add more datasets (orders, customers) to simulate full e-commerce flow
 
 ---
 
@@ -78,7 +71,6 @@ README.md
 - Schema design best practices (`RAW → STAGING → MART`)
 - Data modeling and transformation
 - Building analytics-ready tables
-- Preparing projects for real interviews
 
 ---
 
