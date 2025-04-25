@@ -1,0 +1,28 @@
+version: 2
+
+models:
+  - name: fct_unique_woman_products
+    description: "Final deduplicated list of woman's fashion products, one row per product_id."
+    columns:
+      - name: product_id
+        description: "Unique product identifier for each product"
+        tests:
+          - not_null
+      - name: brand_name
+        description: "Brand associated with the product"
+      - name: title
+        description: "Title or name of the product"
+      - name: current_price
+        description: "Current price listed for the product"
+      - name: previous_price
+        description: "Previous price before discount, if available"
+      - name: colour
+        description: "Color of the product"
+      - name: currency
+        description: "Currency code (e.g., USD, EUR)"
+      - name: rrp
+        description: "Recommended Retail Price"
+      - name: product_code
+        description: "ASOS product internal code"
+      - name: product_type
+        description: "Type/category of product"
